@@ -1,39 +1,64 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: Backend CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
-permissions:
-  contents: read
+    branches:
+      - main
 
 jobs:
-  build:
-
+  test-backend:
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+
     steps:
-    - uses: actions/checkout@v4
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python
     - name: Set up Python 3.10
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
-        python-version: "3.10"
+        python-version: 3.10
+
+    # Step 3: Install dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
+        pip install -r requirements.txt
+
+    # Step 4: Run database migrations (if any scripts are available)
+    - name: Run database migrations
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
+        echo "Skipping migrations if not needed."
+        # Uncomment and add migration command if needed.
+        # python migration_script.py
+
+    # Step 5: Start Gunicorn
+    - name: Start Gunicorn server
+      run: |
+        gunicorn app.main:app --bind 0.0.0.0:8000 --workers 4 &
+        sleep 10  # Give Gunicorn some time to start
+
+    # Step 6: Run API tests
+    - name: Run tests
       run: |
         python test.py
+
+    # Step 7: Stop Gunicorn process
+    - name: Stop Gunicorn
+      run: |
+        pkill -f gunicorn
