@@ -21,7 +21,6 @@ def test_system():
         "email": f"{username}@example.com"
     }
     register_response = requests.post(f"{GATEWAY_URL}/register", json=register_data)
-    print("Register response text:", register_response.text)
     print("Register response:", register_response.json())
     assert register_response.status_code == 200, "Failed to register user"
     username = register_data["username"]
@@ -53,8 +52,8 @@ def test_system():
     # Step 3: Add item to ongoing order
     print("Adding first item to order...")
     order_data = {
-        "name": "Product 2",
-        "quantity": 2
+        "name": "Product 1",
+        "quantity": 1
     }
     response = requests.post(f"{GATEWAY_URL}/orders/add_item/", json=order_data, headers=headers)
     print("add item request sent")
@@ -64,21 +63,26 @@ def test_system():
     print("Adding second item to order...")
     order_data = {
         "name": "Product 1",
-        "quantity": 1
+        "quantity": 2
     }
-    response = requests.post(f"{GATEWAY_URL}/orders/add_item/", json=order_data, headers=headers)
-    assert response.status_code == 200, "Failed to add item to order"
-    print(f"Item added to order successfully. Order ID: {response.json().get('order_id')}")
+    response2 = requests.post(f"{GATEWAY_URL}/orders/add_item/", json=order_data, headers=headers)
+    assert response2.status_code == 200, "Failed to add item to order"
+    print(f"Item added to order successfully. Order ID: {response2.json().get('order_id')}")
 
     print("Adding third item to order...")
     order_data = {
-        "name": "Product 1",
-        "quantity": 2
+        "name": "Product 2",
+        "quantity": 3
     }
-    response = requests.post(f"{GATEWAY_URL}/orders/add_item/", json=order_data, headers=headers)
-    assert response.status_code == 200, "Failed to add item to order"
-    print(f"Item added to order successfully. Order ID: {response.json().get('order_id')}")
+    response3 = requests.post(f"{GATEWAY_URL}/orders/add_item/", json=order_data, headers=headers)
+    assert response3.status_code == 200, "Failed to add item to order"
+    print(f"Item added to order successfully. Order ID: {response3.json().get('order_id')}")
     
+    # step3.5 get ongoing order
+    response4 = requests.get(f"{GATEWAY_URL}/orders/ongoing/", headers=headers)
+    assert response4.status_code == 200, "Failed to get ongoing order"
+    print(f"Items inongoing order: {response4.json()}")
+
     # Step 4: Finalize the order
     print("Finalizing the order...")
     finalize_response = requests.post(f"{GATEWAY_URL}/orders/finalize", headers=headers)
@@ -127,15 +131,19 @@ def test_system():
     print("Passed the test for invalidated token after logout")
 
     # Step 7: Admin user creates a product
-    print("creating a product...")
+    print("Admin creating a product...")
+    admin_login_data = {
+        "username": "admin",
+        "password": "admin"
+    }
 
-    product_creation_response = requests.post(f"{PRODUCT_URL}/products/", json={
+    admin_product_response = requests.post(f"{PRODUCT_URL}/products/", json={
         "name": "Product"+ ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3)) ,
         "price": 50.0,
         "description": "description of Product",
         "available_item": 2
     })
-    assert product_creation_response.status_code == 200, "failed to create product"
+    assert admin_product_response.status_code == 200, "Admin failed to create product"
 
  
 
