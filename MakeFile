@@ -1,0 +1,27 @@
+# Define default target
+.PHONY: build up down restart wait
+
+# Build the Docker containers
+build:
+	docker-compose build
+
+# Start up the containers in detached mode
+up:
+	docker-compose up -d --build
+
+# Stop the containers
+down:
+	docker-compose down
+
+# Restart the containers
+restart: down up
+
+# Run a delay and network connect after `docker-compose up`
+wait:
+	# Wait for all services to be up (adjust sleep time if needed)
+	sleep 5
+	docker network connect microcommerce-network microcommerce-user-service-1
+	docker network connect microcommerce-network microcommerce-product-service-1
+	docker network connect microcommerce-network microcommerce-order-service-1
+	docker network connect microcommerce-network microcommerce-gateway-1
+	docker network connect microcommerce-network microcommerce-payment-service-1

@@ -1,0 +1,6 @@
+docker network connect microcommerce-network mongodb
+docker network connect microcommerce-network microcommerce-user-service-1
+docker network connect microcommerce-network microcommerce-product-service-1
+docker network connect microcommerce-network microcommerce-order-service-1
+docker network connect microcommerce-network microcommerce-gateway-1
+docker network connect microcommerce-network microcommerce-payment-service-1

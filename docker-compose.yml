@@ -1,0 +1,72 @@
+version: '3.9'
+
+services:
+  gateway:
+    build:
+      context: ./gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:2701
+      - USER_SERVICE_URL=http://user-service:8001
+      - PRODUCT_SERVICE_URL=http://product-service:8002
+      - ORDER_SERVICE_URL=http://order-service:8003
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - microcommerce-network
+      
+  user-service:
+    build:
+      context: ./user_service  # path to the User service folder
+    ports:
+      - "8001:8001"
+    environment:
+      - MONGO_URI=mongodb://mongodb:2701  # Connect to host machine's MongoDB
+    networks:
+      - microcommerce-network
+
+  product-service:
+    build:
+      context: ./product_service  # path to the Product service folder
+    ports:
+      - "8002:8002"
+    environment:
+      - MONGO_URI=mongodb://mongodb:2701  # Connect to host machine's MongoDB
+    networks:
+      - microcommerce-network
+
+  order-service:
+    build:
+      context: ./order_service  # path to the Order service folder
+    ports:
+      - "8003:8003"
+    environment:
+      - MONGO_URI=mongodb://mongodb:2701
+      - PRODUCT_SERVICE_URL=http://product-service:8002
+      - PAYMENT_SERVICE_URL=http://payment-service:8004
+    depends_on:
+      - product-service
+    networks:
+      - microcommerce-network
+
+  payment-service:
+    build:
+      context: ./payment_service  # path to the Payment service folder
+    ports:
+      - "8004:8004"
+    environment:
+      - MONGO_URI=mongodb://mongodb:2701
+      - ORDER_SERVICE_URL=http://order-service:8003
+    depends_on:
+      - order-service
+    networks:
+      - microcommerce-network
+
+networks:
+  default:
+    driver: bridge  # default network driver, no need to specify unless you need customization
+  microcommerce-network:
+    driver: bridge
