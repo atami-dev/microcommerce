@@ -61,4 +61,4 @@ jobs:
     # Step 7: Stop Gunicorn process
     - name: Stop Gunicorn
       run: |
-        pkill -f unicorn
+        # pkill -f unicorn
